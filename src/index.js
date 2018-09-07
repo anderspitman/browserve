@@ -67,6 +67,7 @@ function (wsStreamify, fileReaderStream) {
   class Server {
 
     constructor({ host, port }) {
+      this._port = port;
       const wsString = `ws://${host}:${port}`;
       const ws = new WebSocket(wsString);
       ws.addEventListener('open', (e) => {
@@ -79,6 +80,7 @@ function (wsStreamify, fileReaderStream) {
 
       this._ws = ws;
       this._files = {};
+      this._id = null;
 
       const streamPort = 8082;
       this._streamPool = new StreamPool({ host, port: streamPort });
@@ -87,6 +89,15 @@ function (wsStreamify, fileReaderStream) {
     onMessage(message) {
 
       switch(message.type) {
+        case 'complete-handshake':
+          this._id = message.id;
+          const uuidEl = document.getElementById('uuid');
+          uuidEl.innerHTML = this._id;
+
+          const exampleCommandEl = document.getElementById('example_command');
+          exampleCommandEl.innerHTML =
+            `samtools view http://${window.location.hostname}:${this._port}/${this._id}/NA12878.exome.bam`; 
+          break;
         case 'GET':
           if (message.type === 'GET') {
             if (this._files[message.url] !== undefined) {

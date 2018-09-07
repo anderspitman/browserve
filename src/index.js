@@ -46,6 +46,8 @@ function (wsStreamify, fileReaderStream) {
 
       const socket = new WebSocket(this._wsStreamString)
       socket.addEventListener('open', (e) => {
+
+        settings.type = 'convert-to-stream';
         socket.send(JSON.stringify(settings));
 
         const stream = new WebSocketStream(socket, { highWaterMark: 1024 })

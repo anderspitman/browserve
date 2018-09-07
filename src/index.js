@@ -96,7 +96,7 @@ function (wsStreamify, fileReaderStream) {
 
           const exampleCommandEl = document.getElementById('example_command');
           exampleCommandEl.innerHTML =
-            `samtools view http://${window.location.hostname}:${this._port}/${this._id}/NA12878.exome.bam`; 
+            `samtools view http://${window.location.hostname}:${this._port}/${this._id}/NA12878.exome.bam 2:1-100000`; 
           break;
         case 'GET':
           if (message.type === 'GET') {

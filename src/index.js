@@ -63,12 +63,8 @@ function (wsStreamify, fileReaderStream) {
 
       switch(message.type) {
         case 'complete-handshake':
-          const uuidEl = document.getElementById('uuid');
-          uuidEl.innerHTML = message.id;
-
-          const exampleCommandEl = document.getElementById('example_command');
-          exampleCommandEl.innerHTML =
-            `samtools view http://${window.location.hostname}:${this._port}/${message.id}/NA12878.exome.bam 2:1-100000`; 
+          this._id = message.id;
+           
           break;
         case 'GET':
           if (message.type === 'GET') {
@@ -129,6 +125,15 @@ function (wsStreamify, fileReaderStream) {
 
     hostFile(url, file) {
       this._files[url] = file;
+    }
+
+    getHostedUrl(url) {
+      if (this._files[url]) {
+        return '/' + this._id + url;
+      }
+      else {
+        throw "No file hosted at: " + url;
+      }
     }
   }
 

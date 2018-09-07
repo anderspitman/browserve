@@ -7,13 +7,13 @@
   </head>
   <body>
     <input id='file_button' type='file'></input>
-    <div id='uuid'></div>
     <div id='example_command'></div>
     <script src='/main.js'></script>
     <script>
 
     const host = window.location.hostname;
-    const rsServer = new reverserver.Server({ host, port: 8080 });
+    const port = 8080;
+    const rsServer = new reverserver.Server({ host, port });
 
     const file = new File(["Hi there"], "og.txt", {
       type: "text/plain",
@@ -31,8 +31,10 @@
       const url = '/' + file.name;
       rsServer.hostFile(url, file);
 
-      //const stream = rsServer.fileReaderStream(file);
-      //stream.pipe(rsServer.wsStream);
+      const exampleCommandEl = document.getElementById('example_command');
+      const fullUrl = rsServer.getHostedUrl(url);
+      exampleCommandEl.innerHTML =
+        `samtools view http://${window.location.hostname}:${port}${fullUrl} 2:1-100000`;
     });
 
     </script>

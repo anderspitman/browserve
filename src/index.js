@@ -78,7 +78,7 @@ function (wsStreamify, fileReaderStream) {
       this._ws = ws;
       this._files = {};
 
-      const streamPort = port + 1;
+      const streamPort = 8082;
       this._streamPool = new StreamPool({ host, port: streamPort });
     }
 

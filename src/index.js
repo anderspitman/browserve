@@ -22,51 +22,28 @@ function (wsStreamify, fileReaderStream) {
 
   const WebSocketStream = wsStreamify.default;
 
-  class StreamPool {
-    constructor({ host, port }) {
-      this._idleStreams = [];
-      this._wsStreamString = `ws://${host}:${port}`;
-      this._nextId = 0;
-    }
 
-    getStream() {
+  function createStream(host, port, settings, callback) {
 
-      if (this._idleStreams.length === 0) {
-        this._addStream();
-      }
-      
-      return this._idleStreams.pop();
-    }
+    wsStreamString = `ws://${host}:${port}`;
 
-    releaseStream(stream) {
-      this._idleStreams.push(stream);
-    }
+    const socket = new WebSocket(wsStreamString);
+    socket.addEventListener('open', (e) => {
 
-    createStream(settings, callback) {
+      settings.type = 'convert-to-stream';
+      socket.send(JSON.stringify(settings));
 
-      const socket = new WebSocket(this._wsStreamString)
-      socket.addEventListener('open', (e) => {
+      const stream = new WebSocketStream(socket, { highWaterMark: 1024 })
 
-        settings.type = 'convert-to-stream';
-        socket.send(JSON.stringify(settings));
-
-        const stream = new WebSocketStream(socket, { highWaterMark: 1024 })
-
-        stream._id = this._nextId;
-        this._nextId += 1;
-
-        callback(stream);
-      });
-    }
-
-    _addStream() {
-      this._idleStreams.push(this.createStream());
-    }
+      callback(stream);
+    });
   }
+
 
   class Server {
 
     constructor({ host, port }) {
+      this._host = host;
       this._port = port;
       const wsString = `ws://${host}:${port}`;
       const ws = new WebSocket(wsString);
@@ -80,23 +57,18 @@ function (wsStreamify, fileReaderStream) {
 
       this._ws = ws;
       this._files = {};
-      this._id = null;
-
-      const streamPort = 8082;
-      this._streamPool = new StreamPool({ host, port: streamPort });
     }
 
     onMessage(message) {
 
       switch(message.type) {
         case 'complete-handshake':
-          this._id = message.id;
           const uuidEl = document.getElementById('uuid');
-          uuidEl.innerHTML = this._id;
+          uuidEl.innerHTML = message.id;
 
           const exampleCommandEl = document.getElementById('example_command');
           exampleCommandEl.innerHTML =
-            `samtools view http://${window.location.hostname}:${this._port}/${this._id}/NA12878.exome.bam 2:1-100000`; 
+            `samtools view http://${window.location.hostname}:${this._port}/${message.id}/NA12878.exome.bam 2:1-100000`; 
           break;
         case 'GET':
           if (message.type === 'GET') {
@@ -125,7 +97,7 @@ function (wsStreamify, fileReaderStream) {
                 range: message.range,
               };
 
-              this._streamPool.createStream(streamSettings, (stream) => {
+              createStream(this._host, 8082, streamSettings, (stream) => {
                 fileStream.pipe(stream);
               });
             }

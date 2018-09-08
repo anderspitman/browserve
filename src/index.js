@@ -25,18 +25,26 @@ function (wsStreamify, fileReaderStream) {
 
   function createStream(host, port, settings, callback) {
 
+    const handleMessage = (rawMessage) => {
+      const message = JSON.parse(rawMessage.data);
+      if (message.type === 'complete-handshake') {
+        socket.removeEventListener('message', handleMessage);
+        settings.type = 'convert-to-stream';
+        socket.send(JSON.stringify(settings));
+
+        const stream = new WebSocketStream(socket, { highWaterMark: 1024 })
+
+        callback(stream);
+      }
+      else {
+        throw "Expected handshake";
+      }
+    };
+
     wsStreamString = `ws://${host}:${port}`;
 
     const socket = new WebSocket(wsStreamString);
-    socket.addEventListener('open', (e) => {
-
-      settings.type = 'convert-to-stream';
-      socket.send(JSON.stringify(settings));
-
-      const stream = new WebSocketStream(socket, { highWaterMark: 1024 })
-
-      callback(stream);
-    });
+    socket.addEventListener('message', handleMessage);
   }
 
 
@@ -93,7 +101,7 @@ function (wsStreamify, fileReaderStream) {
                 range: message.range,
               };
 
-              createStream(this._host, 8082, streamSettings, (stream) => {
+              createStream(this._host, this._port, streamSettings, (stream) => {
                 fileStream.pipe(stream);
               });
             }

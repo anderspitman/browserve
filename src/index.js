@@ -135,7 +135,7 @@ function (wsStreamify, fileReaderStream) {
       this._files[url] = file;
     }
 
-    getHostedUrl(url) {
+    getHostedPath(url) {
       if (this._files[url]) {
         return '/' + this._id + url;
       }

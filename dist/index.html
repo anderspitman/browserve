@@ -7,7 +7,9 @@
   </head>
   <body>
     <input id='file_button' type='file'></input>
-    <div id='example_command'></div>
+    <div id='hosted_files'>
+      <h1>Hosted Files</h1>
+    </div>
     <script src='/main.js'></script>
     <script>
 
@@ -21,6 +23,8 @@
 
     rsServer.hostFile('/', file);
 
+    const allUrls = [];
+
     const uploadButton = document.getElementById('file_button');
     uploadButton.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -28,13 +32,20 @@
         return;
       }
 
-      const url = '/' + file.name;
-      rsServer.hostFile(url, file);
+      const path = '/' + file.name;
+      rsServer.hostFile(path, file);
+      const fullPath = rsServer.getHostedPath(path);
+      const url = `http://${window.location.hostname}:${port}${fullPath}`;
 
-      const exampleCommandEl = document.getElementById('example_command');
-      const fullUrl = rsServer.getHostedUrl(url);
-      exampleCommandEl.innerHTML =
-        `samtools view http://${window.location.hostname}:${port}${fullUrl} 2:1-100000`;
+      if (allUrls.indexOf(url) === -1) {
+        allUrls.push(url);
+        const filesEl = document.getElementById('hosted_files');
+        const div = document.createElement('div');
+        div.style.fontSize = '22px';
+        div.style.fontWeight = 'bold';
+        div.innerHTML = `<a target='_blank' href=${url}>${url}</a>`;
+        filesEl.appendChild(div);
+      }
     });
 
     </script>

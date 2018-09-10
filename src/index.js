@@ -58,7 +58,7 @@ function (wsStreamify, fileReaderStream) {
 
   class Server {
 
-    constructor({ host, ports, secure }) {
+    constructor({ host, port, secure }) {
       this._host = host;
       this._port = port;
       this._secure = secure;

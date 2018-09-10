@@ -23,7 +23,15 @@ function (wsStreamify, fileReaderStream) {
   const WebSocketStream = wsStreamify.default;
 
 
-  function createStream(host, port, settings, callback) {
+  function createStream(host, port, settings, secure, callback) {
+
+    let wsProtoStr;
+    if (secure) {
+      wsProtoStr = 'wss';
+    }
+    else {
+      wsProtoStr = 'ws';
+    }
 
     const handleMessage = (rawMessage) => {
       const message = JSON.parse(rawMessage.data);
@@ -41,7 +49,7 @@ function (wsStreamify, fileReaderStream) {
       }
     };
 
-    wsStreamString = `ws://${host}:${port}`;
+    wsStreamString = `${wsProtoStr}://${host}:${port}`;
 
     const socket = new WebSocket(wsStreamString);
     socket.addEventListener('message', handleMessage);
@@ -50,10 +58,20 @@ function (wsStreamify, fileReaderStream) {
 
   class Server {
 
-    constructor({ host, port }) {
+    constructor({ host, ports, secure }) {
       this._host = host;
       this._port = port;
-      const wsString = `ws://${host}:${port}`;
+      this._secure = secure;
+
+      let wsProtoStr;
+      if (secure) {
+        wsProtoStr = 'wss';
+      }
+      else {
+        wsProtoStr = 'ws';
+      }
+
+      const wsString = `${wsProtoStr}://${host}:${port}`;
       const ws = new WebSocket(wsString);
       ws.addEventListener('open', (e) => {
         console.log(`WebSocket connection opened to ${wsString}`);
@@ -101,7 +119,7 @@ function (wsStreamify, fileReaderStream) {
                 range: message.range,
               };
 
-              createStream(this._host, this._port, streamSettings, (stream) => {
+              createStream(this._host, this._port, streamSettings, this._secure, (stream) => {
                 fileStream.pipe(stream);
               });
             }

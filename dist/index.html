@@ -15,7 +15,7 @@
 
     const host = window.location.hostname;
     const port = 8080;
-    const rsServer = new reverserver.Server({ host, port });
+    const rsServer = new reverserver.Server({ host, port, secure: true });
 
     const file = new File(["Hi there"], "og.txt", {
       type: "text/plain",
@@ -35,7 +35,7 @@
       const path = '/' + file.name;
       rsServer.hostFile(path, file);
       const fullPath = rsServer.getHostedPath(path);
-      const url = `http://${window.location.hostname}:${port}${fullPath}`;
+      const url = `${window.location.protocol}//${window.location.hostname}:${port}${fullPath}`;
 
       if (allUrls.indexOf(url) === -1) {
         allUrls.push(url);

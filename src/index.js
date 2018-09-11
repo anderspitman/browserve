@@ -58,10 +58,11 @@ function (wsStreamify, fileReaderStream) {
 
   class Server {
 
-    constructor({ host, port, secure }) {
+    constructor({ host, port, secure }, readyCallback) {
       this._host = host;
       this._port = port;
       this._secure = secure;
+      this._readyCallback = readyCallback;
 
       let wsProtoStr;
       if (secure) {
@@ -71,10 +72,15 @@ function (wsStreamify, fileReaderStream) {
         wsProtoStr = 'ws';
       }
 
+
       const wsString = `${wsProtoStr}://${host}:${port}`;
       const ws = new WebSocket(wsString);
+
       ws.addEventListener('open', (e) => {
         console.log(`WebSocket connection opened to ${wsString}`);
+      });
+
+      ws.addEventListener('error', (e) => {
       });
 
       ws.addEventListener('message', (message) => {
@@ -90,6 +96,7 @@ function (wsStreamify, fileReaderStream) {
       switch(message.type) {
         case 'complete-handshake':
           this._id = message.id;
+          this._readyCallback();
            
           break;
         case 'GET':

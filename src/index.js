@@ -149,8 +149,7 @@ function (wsStreamify, fileReaderStream) {
         }
       };
 
-      const wsStreamString = `${this._wsProtoStr}//${proxyAddress}${this._portStr}`;
-      console.log(wsStreamString);
+      const wsStreamString = `${this._wsProtoStr}//${this._proxyAddress}${this._portStr}`;
       const socket = new WebSocket(wsStreamString);
       socket.addEventListener('message', handleMessage);
     }

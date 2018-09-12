@@ -23,37 +23,7 @@ function (wsStreamify, fileReaderStream) {
   const WebSocketStream = wsStreamify.default;
 
 
-  function createStream(proxyAddress, port, settings, secure, callback) {
-
-    let wsProtoStr;
-    if (secure) {
-      wsProtoStr = 'wss';
-    }
-    else {
-      wsProtoStr = 'ws';
-    }
-
-    const handleMessage = (rawMessage) => {
-      const message = JSON.parse(rawMessage.data);
-      if (message.type === 'complete-handshake') {
-        socket.removeEventListener('message', handleMessage);
-        settings.type = 'convert-to-stream';
-        socket.send(JSON.stringify(settings));
-
-        const stream = new WebSocketStream(socket, { highWaterMark: 1024 })
-
-        callback(stream);
-      }
-      else {
-        throw "Expected handshake";
-      }
-    };
-
-    wsStreamString = `${wsProtoStr}://${proxyAddress}:${port}`;
-
-    const socket = new WebSocket(wsStreamString);
-    socket.addEventListener('message', handleMessage);
-  }
+  
 
 
   class Hoster {
@@ -64,16 +34,21 @@ function (wsStreamify, fileReaderStream) {
       this._secure = secure;
       this._readyCallback = readyCallback;
 
-      let wsProtoStr;
       if (secure) {
-        wsProtoStr = 'wss';
+        this._wsProtoStr = 'wss:';
       }
       else {
-        wsProtoStr = 'ws';
+        this._wsProtoStr = 'ws:';
       }
 
+      if (this.isDefaultPort(port)) {
+        this._portStr = "";
+      }
+      else {
+        this._portStr = ':' + port;
+      }
 
-      const wsString = `${wsProtoStr}://${proxyAddress}:${port}`;
+      const wsString = `${this._wsProtoStr}//${proxyAddress}${this._portStr}`;
       const ws = new WebSocket(wsString);
 
       ws.addEventListener('open', (e) => {
@@ -81,6 +56,7 @@ function (wsStreamify, fileReaderStream) {
       });
 
       ws.addEventListener('error', (e) => {
+        console.error("Error opening WebSocket connection: " + e);
       });
 
       ws.addEventListener('message', (message) => {
@@ -126,7 +102,7 @@ function (wsStreamify, fileReaderStream) {
                 range: message.range,
               };
 
-              createStream(this._proxyAddress, this._port, streamSettings, this._secure, (stream) => {
+              this.createStream(streamSettings, (stream) => {
                 fileStream.pipe(stream);
               });
             }
@@ -156,6 +132,29 @@ function (wsStreamify, fileReaderStream) {
       this._ws.send(message);
     }
 
+    createStream(settings, callback) {
+      const handleMessage = (rawMessage) => {
+        const message = JSON.parse(rawMessage.data);
+        if (message.type === 'complete-handshake') {
+          socket.removeEventListener('message', handleMessage);
+          settings.type = 'convert-to-stream';
+          socket.send(JSON.stringify(settings));
+
+          const stream = new WebSocketStream(socket, { highWaterMark: 1024 })
+
+          callback(stream);
+        }
+        else {
+          throw "Expected handshake";
+        }
+      };
+
+      const wsStreamString = `${this._wsProtoStr}//${proxyAddress}${this._portStr}`;
+      console.log(wsStreamString);
+      const socket = new WebSocket(wsStreamString);
+      socket.addEventListener('message', handleMessage);
+    }
+
     hostFile(url, file) {
       this._files[url] = file;
     }
@@ -166,6 +165,20 @@ function (wsStreamify, fileReaderStream) {
       }
       else {
         throw "No file hosted at: " + url;
+      }
+    }
+
+    getPortStr() {
+      return this._portStr;
+    }
+
+    isDefaultPort(port) {
+      if ((this._wsProtoStr === 'ws:' && port === 80) ||
+          (this._wsProtoStr === 'wss:' && port === 443)) {
+        return true;
+      }
+      else {
+        return false;
       }
     }
   }

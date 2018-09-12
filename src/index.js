@@ -3,7 +3,7 @@
     // AMD. Register as an anonymous module. Also return global
     define(['ws-streamify', 'filereader-stream'],
     function(wsStreamify, fileReaderStream) {
-      return (root.reverserver = factory(wsStreamify, fileReaderStream));
+      return (root.browserve = factory(wsStreamify, fileReaderStream));
     });
   } else if (typeof module === 'object' && module.exports) {
     // Node. Does not work with strict CommonJS, but
@@ -14,7 +14,7 @@
       require('filereader-stream'));
   } else {
     // Browser globals (root is window)
-    root.reverserver = factory(wsStreamify, fileReaderStream);
+    root.browserve = factory(wsStreamify, fileReaderStream);
   }
 }(typeof self !== 'undefined' ? self : this,
 
@@ -23,7 +23,7 @@ function (wsStreamify, fileReaderStream) {
   const WebSocketStream = wsStreamify.default;
 
 
-  function createStream(host, port, settings, secure, callback) {
+  function createStream(proxyAddress, port, settings, secure, callback) {
 
     let wsProtoStr;
     if (secure) {
@@ -49,17 +49,17 @@ function (wsStreamify, fileReaderStream) {
       }
     };
 
-    wsStreamString = `${wsProtoStr}://${host}:${port}`;
+    wsStreamString = `${wsProtoStr}://${proxyAddress}:${port}`;
 
     const socket = new WebSocket(wsStreamString);
     socket.addEventListener('message', handleMessage);
   }
 
 
-  class Server {
+  class Hoster {
 
-    constructor({ host, port, secure }, readyCallback) {
-      this._host = host;
+    constructor({ proxyAddress, port, secure }, readyCallback) {
+      this._proxyAddress = proxyAddress;
       this._port = port;
       this._secure = secure;
       this._readyCallback = readyCallback;
@@ -73,7 +73,7 @@ function (wsStreamify, fileReaderStream) {
       }
 
 
-      const wsString = `${wsProtoStr}://${host}:${port}`;
+      const wsString = `${wsProtoStr}://${proxyAddress}:${port}`;
       const ws = new WebSocket(wsString);
 
       ws.addEventListener('open', (e) => {
@@ -126,7 +126,7 @@ function (wsStreamify, fileReaderStream) {
                 range: message.range,
               };
 
-              createStream(this._host, this._port, streamSettings, this._secure, (stream) => {
+              createStream(this._proxyAddress, this._port, streamSettings, this._secure, (stream) => {
                 fileStream.pipe(stream);
               });
             }
@@ -172,7 +172,7 @@ function (wsStreamify, fileReaderStream) {
 
   
   return {
-    Server,
+    Hoster,
   };
 }));
 

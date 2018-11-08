@@ -36,9 +36,11 @@ function (wsStreamify, fileReaderStream) {
 
       if (secure) {
         this._wsProtoStr = 'wss:';
+        this._httpProtoStr = 'https:';
       }
       else {
         this._wsProtoStr = 'ws:';
+        this._httpProtoStr = 'http:';
       }
 
       if (this.isDefaultPort(port)) {
@@ -85,7 +87,13 @@ function (wsStreamify, fileReaderStream) {
 
               console.log(`read file: ${message.url}`);
 
+              const formData = new FormData();
+
               if (message.range) {
+
+                formData.append('start', message.range.start);
+                formData.append('end', message.range.end);
+
                 console.log(message.range, file.size);
                 if (message.range.end !== '') {
                   file = file.slice(message.range.start, message.range.end);
@@ -95,21 +103,43 @@ function (wsStreamify, fileReaderStream) {
                 }
               }
 
-              const fileStream = fileReaderStream(file);
-              const streamSettings = {
-                id: message.requestId,
-                size: fullFile.size,
-                range: message.range,
-              };
+              //const fileStream = fileReaderStream(file);
+              //const streamSettings = {
+              //  id: message.requestId,
+              //  size: fullFile.size,
+              //  range: message.range,
+              //};
 
-              this.createStream(streamSettings, (stream) => {
-                fileStream.pipe(stream);
+              //this.createStream(streamSettings, (stream) => {
+              //  fileStream.pipe(stream);
+              //});
+
+              console.log("attempt postage");
+
+              console.log(message.requestId);
+              formData.append('hostId', this._id);
+              formData.append('requestId', message.requestId);
+              formData.append('fileSize', file.size);
+              formData.append('file', file);
+              const uri = `${this._httpProtoStr}//${this._proxyAddress}${this._portStr}/file`;
+              console.log(uri);
+              fetch(uri, {
+                method: 'POST',
+                body: formData,
+              }).then((response) => {
+                console.log("postage!");
+                return response.text();
+              })
+              .then((text) => {
+                console.log(text);
+              })
+              .catch((err) => {
+                console.log(err);
               });
             }
             else {
               console.log(`File ${message.url} not found`);
-              this.sendCommand({
-                type: 'error',
+              this.sendError({
                 code: 404,
                 message: "File not found",
                 requestId: message.requestId,
@@ -123,8 +153,29 @@ function (wsStreamify, fileReaderStream) {
       }
     }
 
-    sendCommand(command) {
-      this.send(JSON.stringify(command));
+    sendError(err) {
+      const formData = new FormData();
+      formData.append('hostId', this._id);
+      formData.append('type', 'error');
+      formData.append('code', err.code);
+      formData.append('message', err.message);
+      formData.append('requestId', err.requestId);
+      const uri = `${this._httpProtoStr}//${this._proxyAddress}${this._portStr}/command`;
+      console.log(uri);
+      fetch(uri, {
+        method: 'POST',
+        body: formData,
+      }).then((response) => {
+        console.log("command sent");
+        return response.text();
+      })
+      .then((text) => {
+        console.log(text);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+      //this.send(JSON.stringify(command));
     }
 
     send(message) {

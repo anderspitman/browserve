@@ -14,7 +14,7 @@
     <script>
 
     const proxyAddress = window.location.hostname;
-    const port = 8080;
+    const port = 9001;
     const hoster = new browserve.Hoster({ proxyAddress, port, secure: false }, () => {
 
       const file = new File(["Hi there"], "og.txt", {
@@ -44,7 +44,13 @@
           const div = document.createElement('div');
           div.style.fontSize = '22px';
           div.style.fontWeight = 'bold';
-          div.innerHTML = `<a target='_blank' href=${url}>${url}</a>`;
+          div.innerHTML = `
+            <div>
+              <a target='_blank' href=${url}>${url}</a>
+              <div>samtoolsgit view ${url} chr1:1-10000</div>
+              <div>curl -v -H "Range: bytes=0-1000" ${url} > out.bam</div>
+            </div>
+          `;
           filesEl.appendChild(div);
         }
       });

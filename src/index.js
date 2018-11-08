@@ -1,30 +1,21 @@
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as an anonymous module. Also return global
-    define(['ws-streamify', 'filereader-stream'],
-    function(wsStreamify, fileReaderStream) {
-      return (root.browserve = factory(wsStreamify, fileReaderStream));
+    define([], function() {
+      return (root.browserve = factory());
     });
   } else if (typeof module === 'object' && module.exports) {
     // Node. Does not work with strict CommonJS, but
     // only CommonJS-like environments that support module.exports,
     // like Node.
-    module.exports = factory(
-      require('ws-streamify'),
-      require('filereader-stream'));
+    module.exports = factory();
   } else {
     // Browser globals (root is window)
-    root.browserve = factory(wsStreamify, fileReaderStream);
+    root.browserve = factory();
   }
 }(typeof self !== 'undefined' ? self : this,
 
-function (wsStreamify, fileReaderStream) {
-
-  const WebSocketStream = wsStreamify.default;
-
-
-  
-
+function () {
 
   class Hoster {
 
@@ -85,7 +76,7 @@ function (wsStreamify, fileReaderStream) {
 
               let file = fullFile;
 
-              console.log(`read file: ${message.url}`);
+              //console.log(`read file: ${message.url}`);
 
               const formData = new FormData();
 
@@ -94,7 +85,7 @@ function (wsStreamify, fileReaderStream) {
                 formData.append('start', message.range.start);
                 formData.append('end', message.range.end);
 
-                console.log(message.range, file.size);
+                //console.log(message.range, file.size);
                 if (message.range.end !== '') {
                   file = file.slice(message.range.start, message.range.end);
                 }
@@ -103,42 +94,21 @@ function (wsStreamify, fileReaderStream) {
                 }
               }
 
-              //const fileStream = fileReaderStream(file);
-              //const streamSettings = {
-              //  id: message.requestId,
-              //  size: fullFile.size,
-              //  range: message.range,
-              //};
-
-              //this.createStream(streamSettings, (stream) => {
-              //  fileStream.pipe(stream);
-              //});
-
-              console.log("attempt postage");
-
-              console.log(message.requestId);
               formData.append('hostId', this._id);
               formData.append('requestId', message.requestId);
               formData.append('fileSize', file.size);
               formData.append('file', file);
               const uri = `${this._httpProtoStr}//${this._proxyAddress}${this._portStr}/file`;
-              console.log(uri);
               fetch(uri, {
                 method: 'POST',
                 body: formData,
-              }).then((response) => {
-                console.log("postage!");
-                return response.text();
-              })
-              .then((text) => {
-                console.log(text);
               })
               .catch((err) => {
                 console.log(err);
               });
             }
             else {
-              console.log(`File ${message.url} not found`);
+              //console.log(`File ${message.url} not found`);
               this.sendError({
                 code: 404,
                 message: "File not found",
@@ -161,16 +131,9 @@ function (wsStreamify, fileReaderStream) {
       formData.append('message', err.message);
       formData.append('requestId', err.requestId);
       const uri = `${this._httpProtoStr}//${this._proxyAddress}${this._portStr}/command`;
-      console.log(uri);
       fetch(uri, {
         method: 'POST',
         body: formData,
-      }).then((response) => {
-        console.log("command sent");
-        return response.text();
-      })
-      .then((text) => {
-        console.log(text);
       })
       .catch((err) => {
         console.log(err);
@@ -181,28 +144,6 @@ function (wsStreamify, fileReaderStream) {
     send(message) {
       //this._ws.send(JSON.stringify(message));
       this._ws.send(message);
-    }
-
-    createStream(settings, callback) {
-      const handleMessage = (rawMessage) => {
-        const message = JSON.parse(rawMessage.data);
-        if (message.type === 'complete-handshake') {
-          socket.removeEventListener('message', handleMessage);
-          settings.type = 'convert-to-stream';
-          socket.send(JSON.stringify(settings));
-
-          const stream = new WebSocketStream(socket, { highWaterMark: 1024 })
-
-          callback(stream);
-        }
-        else {
-          throw "Expected handshake";
-        }
-      };
-
-      const wsStreamString = `${this._wsProtoStr}//${this._proxyAddress}${this._portStr}`;
-      const socket = new WebSocket(wsStreamString);
-      socket.addEventListener('message', handleMessage);
     }
 
     hostFile(url, file) {

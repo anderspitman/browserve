@@ -52,11 +52,11 @@ function (wsStreamify, fileReaderStream) {
       const ws = new WebSocket(wsString);
 
       ws.addEventListener('open', (e) => {
-        console.log(`WebSocket connection opened to ${wsString}`);
+        //console.log(`WebSocket connection opened to ${wsString}`);
       });
 
       ws.addEventListener('error', (e) => {
-        console.error("Error opening WebSocket connection: " + e);
+        //console.error("Error opening WebSocket connection: " + e);
       });
 
       ws.addEventListener('message', (message) => {
@@ -83,10 +83,10 @@ function (wsStreamify, fileReaderStream) {
 
               let file = fullFile;
 
-              console.log(`read file: ${message.url}`);
+              //console.log(`read file: ${message.url}`);
 
               if (message.range) {
-                console.log(message.range, file.size);
+                //console.log(message.range, file.size);
                 if (message.range.end !== '') {
                   file = file.slice(message.range.start, message.range.end);
                 }
@@ -107,7 +107,7 @@ function (wsStreamify, fileReaderStream) {
               });
             }
             else {
-              console.log(`File ${message.url} not found`);
+              //console.log(`File ${message.url} not found`);
               this.sendCommand({
                 type: 'error',
                 code: 404,

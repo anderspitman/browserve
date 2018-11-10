@@ -1,7 +1,7 @@
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as an anonymous module. Also return global
-    define(['ws-streamify', 'filereader-stream'],
+    define(['@anderspitman/ws-streamify', 'filereader-stream'],
     function(wsStreamify, fileReaderStream) {
       return (root.browserve = factory(wsStreamify, fileReaderStream));
     });
@@ -10,7 +10,7 @@
     // only CommonJS-like environments that support module.exports,
     // like Node.
     module.exports = factory(
-      require('ws-streamify'),
+      require('@anderspitman/ws-streamify'),
       require('filereader-stream'));
   } else {
     // Browser globals (root is window)

@@ -1,3 +1,4 @@
+const WebSocket = require('isomorphic-ws');
 const wsStreamify = require('ws-streamify');
 const fileReaderStream = require('filereader-stream');
 
@@ -33,7 +34,7 @@ class Hoster {
     });
 
     ws.addEventListener('error', (e) => {
-      //console.error("Error opening WebSocket connection: " + e);
+      console.error("Error opening WebSocket connection: " + e);
     });
 
     ws.addEventListener('message', (message) => {

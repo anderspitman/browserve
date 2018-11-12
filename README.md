@@ -25,26 +25,24 @@ And run it:
 fibridge-proxy -p 8080
 ```
 
-Create a Hoster object in the browser:
+Create a Hoster object in the browser and host a couple files.  See
+`dist/index.html` for a working example where the user selects a file from
+their computer.
 
 ```javascript
-const hoster = new fibridge.Hoster({ proxyAddress: 'localhost', port: 8080, secure: false });
-```
+fibridge.createHoster({ proxyAddress: 'localhost', port: 8080, secure: false }).then((hoster) => {
 
-Host a couple files in the browser. See `dist/index.html` for a working
-example where the user selects a file from their computer.
-
-```javascript
-const file1 = new File(["Hi there"], "file1.txt", {
-  type: "text/plain",
+  const file1 = new File(["Hi there"], "file1.txt", {
+    type: "text/plain",
+  });
+  
+  const file2 = new File(["I'm Old Gregg"], "file2.txt", {
+    type: "text/plain",
+  });
+  
+  hoster.hostFile({ path: '/file1', file: file1 });
+  hoster.hostFile({ path: '/file2', file: file2 });
 });
-
-const file2 = new File(["I'm Old Gregg"], "file2.txt", {
-  type: "text/plain",
-});
-
-hoster.hostFile({ path: '/file1', file: file1 });
-hoster.hostFile({ path: '/file2', file: file2 });
 ```
 
 Retrieve the files using any http client:

@@ -50,7 +50,7 @@ class Hoster {
     switch(message.type) {
       case 'complete-handshake':
         this._id = message.id;
-        this._readyCallback();
+        this._readyCallback(this);
          
         break;
       case 'GET':
@@ -160,7 +160,14 @@ class Hoster {
   }
 }
 
+function createHoster(options) {
+  return new Promise((resolve, reject) => {
+    new Hoster(options, function ready(hoster) {
+      resolve(hoster);
+    });
+  });
+}
 
 module.exports = {
-  Hoster,
+  createHoster,
 };

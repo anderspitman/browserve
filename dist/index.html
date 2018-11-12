@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>browserve fileshare</title>
+    <title>fibridge fileshare</title>
     <link rel="stylesheet" type="text/css" href="/styles.css">
     <meta charset="UTF-8"> 
   </head>
@@ -15,7 +15,7 @@
 
     const proxyAddress = window.location.hostname;
     const port = 8080;
-    const hoster = new browserve.Hoster({ proxyAddress, port, secure: false }, () => {
+    const hoster = new fibridge.Hoster({ proxyAddress, port, secure: false }, () => {
 
       const file = new File(["Hi there"], "og.txt", {
         type: "text/plain",

@@ -1,5 +1,5 @@
 {
-  "name": "browserve-host",
+  "name": "fibridge-host",
   "version": "0.7.0",
   "description": "",
   "main": "./src/index.js",

@@ -154,8 +154,8 @@ function (wsStreamify, fileReaderStream) {
       socket.addEventListener('message', handleMessage);
     }
 
-    hostFile(url, file) {
-      this._files[url] = file;
+    hostFile({ path, file }) {
+      this._files[path] = file;
     }
 
     getHostedPath(url) {

@@ -21,7 +21,7 @@
         type: "text/plain",
       });
 
-      hoster.hostFile('/', file);
+      hoster.hostFile({ path: '/', file });
 
       const allUrls = [];
 
@@ -33,7 +33,7 @@
         }
 
         const path = '/' + file.name;
-        hoster.hostFile(path, file);
+        hoster.hostFile({ path, file });
         const fullPath = hoster.getHostedPath(path);
         const portStr = hoster.getPortStr();
         const url = `${window.location.protocol}//${window.location.hostname}${portStr}${fullPath}`;

@@ -43,8 +43,8 @@ const file2 = new File(["I'm Old Gregg"], "file2.txt", {
   type: "text/plain",
 });
 
-hoster.hostFile('/file1', file1);
-hoster.hostFile('/file2', file2);
+hoster.hostFile({ path: '/file1', file: file1 });
+hoster.hostFile({ path: '/file2', file: file2 });
 ```
 
 Retrieve the files using any http client:

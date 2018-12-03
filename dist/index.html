@@ -46,8 +46,23 @@
           div.style.fontWeight = 'bold';
           div.innerHTML = `<a target='_blank' href=${url}>${url}</a>`;
           filesEl.appendChild(div);
+
+          const samtoolsDiv = document.createElement('div');
+          samtoolsDiv.style.fontSize = '22px';
+          samtoolsDiv.style.fontWeight = 'bold';
+          samtoolsDiv.innerHTML = `samtools view -H ${url}`;
+          filesEl.appendChild(samtoolsDiv);
+
+          const rangedDiv = document.createElement('div');
+          rangedDiv.style.fontSize = '22px';
+          rangedDiv.style.fontWeight = 'bold';
+          rangedDiv.innerHTML = `samtools view ${url} chr2`;
+          filesEl.appendChild(rangedDiv);
         }
       });
+    })
+    .catch((err) => {
+      console.log(err);
     });
 
     </script>

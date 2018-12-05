@@ -51,6 +51,8 @@ class Hoster {
     this._wsStreamString = wsString + '/stream';
     this._streamWs = new WebSocket(this._wsStreamString);
 
+    this._streamWs.binaryType = 'arraybuffer';
+
     this._streamWs.onopen = () => {
       const conn = nsPeer.createConnection();
       this._streamConn = conn;
@@ -115,7 +117,7 @@ class Hoster {
 
             console.log(streamSettings);
             const stream = this._streamConn.createStream(streamSettings);
-            stream.writeFile(file);
+            stream.sendFile(file);
 
           }
           else {

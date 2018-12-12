@@ -62,7 +62,7 @@ class Hoster {
       })
 
       this._streamWs.onmessage = (message) => {
-        conn.onMessage(message.data)
+        conn.handleMessage(message.data)
       }
 
       //const stream = conn.createStream();

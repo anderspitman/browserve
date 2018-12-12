@@ -58,6 +58,12 @@
           rangedDiv.style.fontWeight = 'bold';
           rangedDiv.innerHTML = `samtools view ${url} chr2`;
           filesEl.appendChild(rangedDiv);
+
+          const curlDiv = document.createElement('div');
+          curlDiv.style.fontSize = '22px';
+          curlDiv.style.fontWeight = 'bold';
+          curlDiv.innerHTML = `curl ${url} > file.bam`;
+          filesEl.appendChild(curlDiv);
         }
       });
     })

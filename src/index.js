@@ -1,6 +1,6 @@
 const WebSocket = require('isomorphic-ws');
 const wsStreamify = require('ws-streamify');
-//const fileReaderStream = require('filereader-stream');
+const { FileReadStream } = require('omnistreams-filereader');
 const { Peer } = require('netstreams');
 
 //const WebSocketStream = wsStreamify.default;
@@ -115,10 +115,11 @@ class Hoster {
             //  fileStream.pipe(stream);
             //});
 
-            console.log(streamSettings);
-            const stream = this._streamConn.createStream(streamSettings);
-            stream.sendFile(file);
+            const fileStream = new FileReadStream(file)
+            fileStream.id = streamSettings.id
+            const sendStream = this._streamConn.createStream(streamSettings);
 
+            fileStream.pipe(sendStream)
           }
           else {
             //console.log(`File ${message.url} not found`);

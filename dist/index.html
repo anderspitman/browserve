@@ -14,7 +14,7 @@
     <script>
 
     const proxyAddress = window.location.hostname;
-    const port = 8080;
+    const port = 9001;
     fibridge.createHoster({ proxyAddress, port, secure: false }).then((hoster) => {
 
       const file = new File(["Hi there"], "og.txt", {

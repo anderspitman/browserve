@@ -1,7 +1,7 @@
 const WebSocket = require('isomorphic-ws');
 const wsStreamify = require('ws-streamify');
 const { FileReadStream } = require('omnistreams-filereader');
-const { Peer } = require('netstreams');
+const { Peer } = require('omnistreams-concurrent');
 
 //const WebSocketStream = wsStreamify.default;
 

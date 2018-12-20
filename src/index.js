@@ -120,6 +120,9 @@ class Hoster {
             const sendStream = this._streamConn.createStream(streamSettings);
 
             fileStream.pipe(sendStream)
+
+            fileStream.onTerminate(() => {
+            })
           }
           else {
             //console.log(`File ${message.url} not found`);

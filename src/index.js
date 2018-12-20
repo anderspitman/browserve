@@ -65,6 +65,12 @@ class Hoster {
         conn.handleMessage(message.data)
       }
 
+      conn.onControlMessage((message) => {
+      })
+
+      conn.sendControlMessage(new Uint8Array([44,45,56]))
+
+
       //const stream = conn.createStream();
       //stream.write(new Uint8Array([44, 45, 56]));
 

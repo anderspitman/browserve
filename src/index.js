@@ -48,7 +48,7 @@ class Hoster {
     this._files = {};
 
 
-    this._wsStreamString = wsString + '/stream';
+    this._wsStreamString = wsString + '/omnistreams';
     this._streamWs = new WebSocket(this._wsStreamString);
 
     this._streamWs.binaryType = 'arraybuffer';

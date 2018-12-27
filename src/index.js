@@ -1,11 +1,9 @@
 const WebSocket = require('isomorphic-ws');
-const wsStreamify = require('ws-streamify');
 const ab2str = require('arraybuffer-to-string')
 const str2ab = require('string-to-arraybuffer')
 const { FileReadStream } = require('omnistreams-filereader');
 const { Multiplexer } = require('omnistreams-concurrent');
 
-//const WebSocketStream = wsStreamify.default;
 
 class Hoster {
 
@@ -31,39 +29,28 @@ class Hoster {
 
     this._files = {};
 
-    const wsString = `${this._wsProtoStr}//${proxyAddress}${this._portStr}`;
-    this._wsStreamString = wsString + '/omnistreams';
-    this._streamWs = new WebSocket(this._wsStreamString);
+    const wsString = `${this._wsProtoStr}//${proxyAddress}${this._portStr}/omnistreams`
+    const streamWs = new WebSocket(wsString);
 
-    this._streamWs.binaryType = 'arraybuffer';
+    streamWs.binaryType = 'arraybuffer';
 
-    this._streamWs.onopen = () => {
+    streamWs.onopen = () => {
       const mux = new Multiplexer()
       this._mux = mux
       this._streamMux = mux;
 
       mux.setSendHandler((message) => {
-        this._streamWs.send(message)
+        streamWs.send(message)
       })
 
-      this._streamWs.onmessage = (message) => {
+      streamWs.onmessage = (message) => {
         mux.handleMessage(message.data)
       }
 
       mux.onControlMessage((rawMessage) => {
         const message = JSON.parse(ab2str(rawMessage))
-        console.log(message)
         this.onMessage(message)
       })
-
-      //const stream = conn.createStream();
-      //stream.write(new Uint8Array([44, 45, 56]));
-
-      //const file = new File(["Hi there"], "og.txt", {
-      //  type: "text/plain",
-      //});
-
-      //stream.writeFile(file);
     };
   }
 
@@ -102,10 +89,6 @@ class Hoster {
               range: message.range,
             };
 
-            //this.createStream(streamSettings, (stream) => {
-            //  fileStream.pipe(stream);
-            //});
-
             const fileStream = new FileReadStream(file)
             fileStream.id = streamSettings.id
             const sendStream = this._streamMux.createConduit(streamSettings);
@@ -117,12 +100,12 @@ class Hoster {
           }
           else {
             //console.log(`File ${message.url} not found`);
-            this.sendCommand({
+            this._mux.sendControlMessage(new Uint8Array(str2ab(JSON.stringify({
               type: 'error',
               code: 404,
               message: "File not found",
               requestId: message.requestId,
-            });
+            }))))
           }
         }
         break;
@@ -131,36 +114,6 @@ class Hoster {
         break;
     }
   }
-
-  sendCommand(command) {
-    this.send(command);
-  }
-
-  send(message) {
-    this._mux.sendControlMessage(new Uint8Array(str2ab(JSON.stringify(message))))
-  }
-
-  //createStream(settings, callback) {
-  //  const handleMessage = (rawMessage) => {
-  //    const message = JSON.parse(rawMessage.data);
-  //    if (message.type === 'complete-handshake') {
-  //      socket.removeEventListener('message', handleMessage);
-  //      settings.type = 'convert-to-stream';
-  //      socket.send(JSON.stringify(settings));
-
-  //      const stream = new WebSocketStream(socket, { highWaterMark: 1024 })
-
-  //      callback(stream);
-  //    }
-  //    else {
-  //      throw "Expected handshake";
-  //    }
-  //  };
-
-  //  const wsStreamString = `${this._wsProtoStr}//${this._proxyAddress}${this._portStr}`;
-  //  const socket = new WebSocket(wsStreamString);
-  //  socket.addEventListener('message', handleMessage);
-  //}
 
   hostFile({ path, file }) {
     this._files[path] = file;

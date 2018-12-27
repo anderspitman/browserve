@@ -1,7 +1,7 @@
 const WebSocket = require('isomorphic-ws');
 const wsStreamify = require('ws-streamify');
 const { FileReadStream } = require('omnistreams-filereader');
-const { Peer } = require('omnistreams-concurrent');
+const { Multiplexer } = require('omnistreams-concurrent');
 
 //const WebSocketStream = wsStreamify.default;
 
@@ -12,8 +12,6 @@ class Hoster {
     this._port = port;
     this._secure = secure;
     this._readyCallback = readyCallback;
-
-    const nsPeer = new Peer();
 
     if (secure) {
       this._wsProtoStr = 'wss:';
@@ -54,21 +52,21 @@ class Hoster {
     this._streamWs.binaryType = 'arraybuffer';
 
     this._streamWs.onopen = () => {
-      const conn = nsPeer.createConnection();
-      this._streamConn = conn;
+      const mux = new Multiplexer()
+      this._streamMux = mux;
 
-      conn.setSendHandler((message) => {
+      mux.setSendHandler((message) => {
         this._streamWs.send(message)
       })
 
       this._streamWs.onmessage = (message) => {
-        conn.handleMessage(message.data)
+        mux.handleMessage(message.data)
       }
 
-      conn.onControlMessage((message) => {
+      mux.onControlMessage((message) => {
       })
 
-      conn.sendControlMessage(new Uint8Array([44,45,56]))
+      mux.sendControlMessage(new Uint8Array([44,45,56]))
 
 
       //const stream = conn.createStream();
@@ -123,7 +121,7 @@ class Hoster {
 
             const fileStream = new FileReadStream(file)
             fileStream.id = streamSettings.id
-            const sendStream = this._streamConn.createStream(streamSettings);
+            const sendStream = this._streamMux.createStream(streamSettings);
 
             fileStream.pipe(sendStream)
 

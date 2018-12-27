@@ -121,7 +121,7 @@ class Hoster {
 
             const fileStream = new FileReadStream(file)
             fileStream.id = streamSettings.id
-            const sendStream = this._streamMux.createStream(streamSettings);
+            const sendStream = this._streamMux.createChannel(streamSettings);
 
             fileStream.pipe(sendStream)
 

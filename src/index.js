@@ -29,25 +29,9 @@ class Hoster {
       this._portStr = ':' + port;
     }
 
-    const wsString = `${this._wsProtoStr}//${proxyAddress}${this._portStr}`;
-    const ws = new WebSocket(wsString);
-
-    ws.addEventListener('open', (e) => {
-      //console.log(`WebSocket connection opened to ${wsString}`);
-    });
-
-    ws.addEventListener('error', (e) => {
-      console.error("Error opening WebSocket connection: " + e);
-    });
-
-    ws.addEventListener('message', (message) => {
-      this.onMessage(JSON.parse(message.data));
-    });
-
-    this._ws = ws;
     this._files = {};
 
-
+    const wsString = `${this._wsProtoStr}//${proxyAddress}${this._portStr}`;
     this._wsStreamString = wsString + '/omnistreams';
     this._streamWs = new WebSocket(this._wsStreamString);
 
@@ -55,6 +39,7 @@ class Hoster {
 
     this._streamWs.onopen = () => {
       const mux = new Multiplexer()
+      this._mux = mux
       this._streamMux = mux;
 
       mux.setSendHandler((message) => {
@@ -68,11 +53,8 @@ class Hoster {
       mux.onControlMessage((rawMessage) => {
         const message = JSON.parse(ab2str(rawMessage))
         console.log(message)
-
-        mux.sendControlMessage(rawMessage)
+        this.onMessage(message)
       })
-
-
 
       //const stream = conn.createStream();
       //stream.write(new Uint8Array([44, 45, 56]));
@@ -151,12 +133,11 @@ class Hoster {
   }
 
   sendCommand(command) {
-    this.send(JSON.stringify(command));
+    this.send(command);
   }
 
   send(message) {
-    //this._ws.send(JSON.stringify(message));
-    this._ws.send(message);
+    this._mux.sendControlMessage(new Uint8Array(str2ab(JSON.stringify(message))))
   }
 
   //createStream(settings, callback) {

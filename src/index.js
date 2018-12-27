@@ -1,5 +1,7 @@
 const WebSocket = require('isomorphic-ws');
 const wsStreamify = require('ws-streamify');
+const ab2str = require('arraybuffer-to-string')
+const str2ab = require('string-to-arraybuffer')
 const { FileReadStream } = require('omnistreams-filereader');
 const { Multiplexer } = require('omnistreams-concurrent');
 
@@ -63,10 +65,13 @@ class Hoster {
         mux.handleMessage(message.data)
       }
 
-      mux.onControlMessage((message) => {
+      mux.onControlMessage((rawMessage) => {
+        const message = JSON.parse(ab2str(rawMessage))
+        console.log(message)
+
+        mux.sendControlMessage(rawMessage)
       })
 
-      mux.sendControlMessage(new Uint8Array([44,45,56]))
 
 
       //const stream = conn.createStream();

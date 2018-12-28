@@ -51,6 +51,13 @@ class Hoster {
         const message = JSON.parse(ab2str(rawMessage))
         this.onMessage(message)
       })
+
+      // Send a keep-alive every minute
+      setInterval(() => {
+        this._mux.sendControlMessage(new Uint8Array(str2ab(JSON.stringify({
+          type: 'keep-alive',
+        }))))
+      }, 60000)
     };
   }
 

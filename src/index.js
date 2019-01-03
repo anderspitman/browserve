@@ -70,6 +70,7 @@ class Hoster {
          
         break;
       case 'GET':
+        console.log(message)
         if (message.type === 'GET') {
           if (this._files[message.url] !== undefined) {
 
@@ -81,7 +82,7 @@ class Hoster {
 
             if (message.range) {
               //console.log(message.range, file.size);
-              if (message.range.end !== '') {
+              if (message.range.end !== undefined) {
                 file = file.slice(message.range.start, message.range.end);
               }
               else {
@@ -106,7 +107,7 @@ class Hoster {
             })
           }
           else {
-            //console.log(`File ${message.url} not found`);
+            console.log(`File ${message.url} not found`);
             this._mux.sendControlMessage(new Uint8Array(str2ab(JSON.stringify({
               type: 'error',
               code: 404,

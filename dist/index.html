@@ -56,13 +56,14 @@
           const rangedDiv = document.createElement('div');
           rangedDiv.style.fontSize = '22px';
           rangedDiv.style.fontWeight = 'bold';
-          rangedDiv.innerHTML = `samtools view ${url} chr18`;
+          rangedDiv.innerHTML = `samtools view ${url} 18`;
           filesEl.appendChild(rangedDiv);
 
           const curlDiv = document.createElement('div');
           curlDiv.style.fontSize = '22px';
           curlDiv.style.fontWeight = 'bold';
-          curlDiv.innerHTML = `curl ${url} > file.bam`;
+          //curlDiv.innerHTML = `curl -H "Range: bytes=1-6" ${url} > file.bam`;
+          curlDiv.innerHTML = `curl ${url} > file.bam.bai`;
           filesEl.appendChild(curlDiv);
         }
       });

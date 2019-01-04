@@ -1,8 +1,10 @@
 const WebSocket = require('isomorphic-ws');
-const ab2str = require('arraybuffer-to-string')
-const str2ab = require('string-to-arraybuffer')
+const { 
+  Multiplexer,
+  encodeObject,
+  decodeObject
+} = require('omnistreams')
 const { FileReadStream } = require('omnistreams-filereader');
-const { Multiplexer } = require('omnistreams-concurrent');
 
 
 class Hoster {
@@ -48,15 +50,15 @@ class Hoster {
       }
 
       mux.onControlMessage((rawMessage) => {
-        const message = JSON.parse(ab2str(rawMessage))
+        const message = decodeObject(rawMessage)
         this.onMessage(message)
       })
 
       // Send a keep-alive every 30 seconds
       setInterval(() => {
-        this._mux.sendControlMessage(new Uint8Array(str2ab(JSON.stringify({
+        this._mux.sendControlMessage(encodeObject({
           type: 'keep-alive',
-        }))))
+        }))
       }, 30000)
     };
   }
@@ -99,7 +101,7 @@ class Hoster {
 
             const fileStream = new FileReadStream(file)
             fileStream.id = streamSettings.id
-            const sendStream = this._streamMux.createConduit(streamSettings);
+            const sendStream = this._streamMux.createConduit(encodeObject(streamSettings));
 
             fileStream.pipe(sendStream)
 
@@ -108,12 +110,12 @@ class Hoster {
           }
           else {
             //console.log(`File ${message.url} not found`);
-            this._mux.sendControlMessage(new Uint8Array(str2ab(JSON.stringify({
+            this._mux.sendControlMessage(encodeObject({
               type: 'error',
               code: 404,
               message: "File not found",
               requestId: message.requestId,
-            }))))
+            }))
           }
         }
         break;

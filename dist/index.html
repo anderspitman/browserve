@@ -13,10 +13,10 @@
     <script src='/fibridge.min.js'></script>
     <script>
 
-    //const proxyAddress = window.location.hostname;
-    //const port = 9001;
-    const proxyAddress = 'lf-proxy.iobio.io';
-    const port = 80;
+    const proxyAddress = window.location.hostname;
+    const port = 9001;
+    //const proxyAddress = 'lf-proxy.iobio.io';
+    //const port = 80;
     fibridge.createHoster({ proxyAddress, port, secure: false }).then((hoster) => {
 
       const file = new File(["Hi there"], "og.txt", {

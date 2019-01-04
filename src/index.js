@@ -52,12 +52,12 @@ class Hoster {
         this.onMessage(message)
       })
 
-      // Send a keep-alive every minute
+      // Send a keep-alive every 30 seconds
       setInterval(() => {
         this._mux.sendControlMessage(new Uint8Array(str2ab(JSON.stringify({
           type: 'keep-alive',
         }))))
-      }, 60000)
+      }, 30000)
     };
   }
 
@@ -70,7 +70,7 @@ class Hoster {
          
         break;
       case 'GET':
-        console.log(message)
+        //console.log(message)
         if (message.type === 'GET') {
           if (this._files[message.url] !== undefined) {
 
@@ -107,7 +107,7 @@ class Hoster {
             })
           }
           else {
-            console.log(`File ${message.url} not found`);
+            //console.log(`File ${message.url} not found`);
             this._mux.sendControlMessage(new Uint8Array(str2ab(JSON.stringify({
               type: 'error',
               code: 404,

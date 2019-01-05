@@ -1,8 +1,11 @@
 const WebSocket = require('isomorphic-ws');
-const wsStreamify = require('ws-streamify');
-const fileReaderStream = require('filereader-stream');
+const { 
+  Multiplexer,
+  encodeObject,
+  decodeObject
+} = require('omnistreams')
+const { FileReadProducer } = require('omnistreams-filereader');
 
-const WebSocketStream = wsStreamify.default;
 
 class Hoster {
 
@@ -26,23 +29,38 @@ class Hoster {
       this._portStr = ':' + port;
     }
 
-    const wsString = `${this._wsProtoStr}//${proxyAddress}${this._portStr}`;
-    const ws = new WebSocket(wsString);
-
-    ws.addEventListener('open', (e) => {
-      //console.log(`WebSocket connection opened to ${wsString}`);
-    });
-
-    ws.addEventListener('error', (e) => {
-      console.error("Error opening WebSocket connection: " + e);
-    });
-
-    ws.addEventListener('message', (message) => {
-      this.onMessage(JSON.parse(message.data));
-    });
-
-    this._ws = ws;
     this._files = {};
+
+    const wsString = `${this._wsProtoStr}//${proxyAddress}${this._portStr}/omnistreams`
+    const streamWs = new WebSocket(wsString);
+
+    streamWs.binaryType = 'arraybuffer';
+
+    streamWs.onopen = () => {
+      const mux = new Multiplexer()
+      this._mux = mux
+      this._streamMux = mux;
+
+      mux.setSendHandler((message) => {
+        streamWs.send(message)
+      })
+
+      streamWs.onmessage = (message) => {
+        mux.handleMessage(message.data)
+      }
+
+      mux.onControlMessage((rawMessage) => {
+        const message = decodeObject(rawMessage)
+        this.onMessage(message)
+      })
+
+      // Send a keep-alive every 30 seconds
+      setInterval(() => {
+        this._mux.sendControlMessage(encodeObject({
+          type: 'keep-alive',
+        }))
+      }, 30000)
+    };
   }
 
   onMessage(message) {
@@ -54,6 +72,7 @@ class Hoster {
          
         break;
       case 'GET':
+        //console.log(message)
         if (message.type === 'GET') {
           if (this._files[message.url] !== undefined) {
 
@@ -65,7 +84,7 @@ class Hoster {
 
             if (message.range) {
               //console.log(message.range, file.size);
-              if (message.range.end !== '') {
+              if (message.range.end !== undefined) {
                 file = file.slice(message.range.start, message.range.end);
               }
               else {
@@ -73,25 +92,30 @@ class Hoster {
               }
             }
 
-            const fileStream = fileReaderStream(file);
+            //const fileStream = fileReaderStream(file);
             const streamSettings = {
               id: message.requestId,
               size: fullFile.size,
               range: message.range,
             };
 
-            this.createStream(streamSettings, (stream) => {
-              fileStream.pipe(stream);
-            });
+            const fileStream = new FileReadProducer(file)
+            fileStream.id = streamSettings.id
+            const sendStream = this._streamMux.createConduit(encodeObject(streamSettings));
+
+            fileStream.pipe(sendStream)
+
+            fileStream.onTermination(() => {
+            })
           }
           else {
             //console.log(`File ${message.url} not found`);
-            this.sendCommand({
+            this._mux.sendControlMessage(encodeObject({
               type: 'error',
               code: 404,
               message: "File not found",
               requestId: message.requestId,
-            });
+            }))
           }
         }
         break;
@@ -99,37 +123,6 @@ class Hoster {
         throw "Invalid message type: " + message.type;
         break;
     }
-  }
-
-  sendCommand(command) {
-    this.send(JSON.stringify(command));
-  }
-
-  send(message) {
-    //this._ws.send(JSON.stringify(message));
-    this._ws.send(message);
-  }
-
-  createStream(settings, callback) {
-    const handleMessage = (rawMessage) => {
-      const message = JSON.parse(rawMessage.data);
-      if (message.type === 'complete-handshake') {
-        socket.removeEventListener('message', handleMessage);
-        settings.type = 'convert-to-stream';
-        socket.send(JSON.stringify(settings));
-
-        const stream = new WebSocketStream(socket, { highWaterMark: 1024 })
-
-        callback(stream);
-      }
-      else {
-        throw "Expected handshake";
-      }
-    };
-
-    const wsStreamString = `${this._wsProtoStr}//${this._proxyAddress}${this._portStr}`;
-    const socket = new WebSocket(wsStreamString);
-    socket.addEventListener('message', handleMessage);
   }
 
   hostFile({ path, file }) {

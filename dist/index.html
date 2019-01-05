@@ -14,7 +14,9 @@
     <script>
 
     const proxyAddress = window.location.hostname;
-    const port = 8080;
+    const port = 9001;
+    //const proxyAddress = 'lf-proxy.iobio.io';
+    //const port = 80;
     fibridge.createHoster({ proxyAddress, port, secure: false }).then((hoster) => {
 
       const file = new File(["Hi there"], "og.txt", {
@@ -36,7 +38,7 @@
         hoster.hostFile({ path, file });
         const fullPath = hoster.getHostedPath(path);
         const portStr = hoster.getPortStr();
-        const url = `${window.location.protocol}//${window.location.hostname}${portStr}${fullPath}`;
+        const url = `${window.location.protocol}//${proxyAddress}${portStr}${fullPath}`;
 
         if (allUrls.indexOf(url) === -1) {
           allUrls.push(url);
@@ -46,8 +48,30 @@
           div.style.fontWeight = 'bold';
           div.innerHTML = `<a target='_blank' href=${url}>${url}</a>`;
           filesEl.appendChild(div);
+
+          const samtoolsDiv = document.createElement('div');
+          samtoolsDiv.style.fontSize = '22px';
+          samtoolsDiv.style.fontWeight = 'bold';
+          samtoolsDiv.innerHTML = `samtools view -H ${url}`;
+          filesEl.appendChild(samtoolsDiv);
+
+          const rangedDiv = document.createElement('div');
+          rangedDiv.style.fontSize = '22px';
+          rangedDiv.style.fontWeight = 'bold';
+          rangedDiv.innerHTML = `samtools view ${url} chr18`;
+          filesEl.appendChild(rangedDiv);
+
+          const curlDiv = document.createElement('div');
+          curlDiv.style.fontSize = '22px';
+          curlDiv.style.fontWeight = 'bold';
+          //curlDiv.innerHTML = `curl -H "Range: bytes=1-6" ${url} > file.bam`;
+          curlDiv.innerHTML = `curl ${url} > file.bam`;
+          filesEl.appendChild(curlDiv);
         }
       });
+    })
+    .catch((err) => {
+      console.log(err);
     });
 
     </script>

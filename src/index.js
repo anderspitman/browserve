@@ -4,7 +4,7 @@ const {
   encodeObject,
   decodeObject
 } = require('omnistreams')
-const { FileReadStream } = require('omnistreams-filereader');
+const { FileReadProducer } = require('omnistreams-filereader');
 
 
 class Hoster {
@@ -99,7 +99,7 @@ class Hoster {
               range: message.range,
             };
 
-            const fileStream = new FileReadStream(file)
+            const fileStream = new FileReadProducer(file)
             fileStream.id = streamSettings.id
             const sendStream = this._streamMux.createConduit(encodeObject(streamSettings));
 

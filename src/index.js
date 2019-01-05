@@ -105,7 +105,7 @@ class Hoster {
 
             fileStream.pipe(sendStream)
 
-            fileStream.onTerminate(() => {
+            fileStream.onTermination(() => {
             })
           }
           else {

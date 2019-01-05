@@ -16,6 +16,7 @@
   "dependencies": {
     "isomorphic-ws": "^4.0.1",
     "omnistreams": "^0.2.0",
+    "omnistreams-filereader": "^0.1.0",
     "ws": "^6.1.0"
   }
 }

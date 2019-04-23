@@ -1,26 +1,25 @@
-const WebSocket = require('isomorphic-ws');
-const { 
-  Multiplexer,
-  encodeObject,
-  decodeObject
-} = require('omnistreams')
+const { initiateWebSocketMux } = require('omnistreams-concurrent');
+
+function encodeObject(obj) {
+  const enc = new TextEncoder();
+  return enc.encode(JSON.stringify(obj));
+}
+
+function decodeObject(array) {
+  return JSON.parse(String.fromCharCode.apply(null, new Uint8Array(array)));
+}
+
+const { initiateWebSocketPeer } = require('omni-rpc');
+
 const { FileReadProducer } = require('omnistreams-filereader');
 
 
 class Hoster {
 
   constructor({ proxyAddress, port, secure }, readyCallback) {
-    this._proxyAddress = proxyAddress;
-    this._port = port;
-    this._secure = secure;
-    this._readyCallback = readyCallback;
 
-    if (secure) {
-      this._wsProtoStr = 'wss:';
-    }
-    else {
-      this._wsProtoStr = 'ws:';
-    }
+    this._readyCallback = readyCallback;
+    this._files = {};
 
     if (this.isDefaultPort(port)) {
       this._portStr = "";
@@ -29,38 +28,23 @@ class Hoster {
       this._portStr = ':' + port;
     }
 
-    this._files = {};
+    initiateWebSocketMux({ address: proxyAddress, port, secure })
+    .then((mux) => {
 
-    const wsString = `${this._wsProtoStr}//${proxyAddress}${this._portStr}/omnistreams`
-    const streamWs = new WebSocket(wsString);
-
-    streamWs.binaryType = 'arraybuffer';
-
-    streamWs.onopen = () => {
-      const mux = new Multiplexer()
-      this._mux = mux
-      this._streamMux = mux;
-
-      mux.setSendHandler((message) => {
-        streamWs.send(message)
-      })
-
-      streamWs.onmessage = (message) => {
-        mux.handleMessage(message.data)
-      }
+      this._mux = mux;
 
       mux.onControlMessage((rawMessage) => {
         const message = decodeObject(rawMessage)
         this.onMessage(message)
-      })
+      });
 
       // Send a keep-alive every 30 seconds
       setInterval(() => {
-        this._mux.sendControlMessage(encodeObject({
+        mux.sendControlMessage(encodeObject({
           type: 'keep-alive',
         }))
       }, 30000)
-    };
+    });
   }
 
   onMessage(message) {
@@ -101,7 +85,7 @@ class Hoster {
 
             const fileStream = new FileReadProducer(file)
             fileStream.id = streamSettings.id
-            const sendStream = this._streamMux.createConduit(encodeObject(streamSettings));
+            const sendStream = this._mux.createConduit(encodeObject(streamSettings));
 
             fileStream.pipe(sendStream)
 

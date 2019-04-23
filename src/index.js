@@ -1,6 +1,6 @@
-const { initiateWebSocketMux, encodeObject, decodeObject } = require('omnistreams');
-const { initiateWebSocketPeer } = require('omni-rpc');
-const { FileReadProducer } = require('omnistreams-filereader');
+import { initiateWebSocketMux, encodeObject, decodeObject } from 'omnistreams';
+import { initiateWebSocketPeer } from 'omni-rpc';
+import { FileReadProducer } from 'omnistreams-filereader';
 
 
 class Hoster {
@@ -134,6 +134,4 @@ function createHoster(options) {
   });
 }
 
-module.exports = {
-  createHoster,
-};
+export { createHoster };

@@ -1,16 +1,5 @@
-const { initiateWebSocketMux } = require('omnistreams-concurrent');
-
-function encodeObject(obj) {
-  const enc = new TextEncoder();
-  return enc.encode(JSON.stringify(obj));
-}
-
-function decodeObject(array) {
-  return JSON.parse(String.fromCharCode.apply(null, new Uint8Array(array)));
-}
-
+const { initiateWebSocketMux, encodeObject, decodeObject } = require('omnistreams');
 const { initiateWebSocketPeer } = require('omni-rpc');
-
 const { FileReadProducer } = require('omnistreams-filereader');
 
 

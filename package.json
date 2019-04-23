@@ -1,6 +1,6 @@
 {
   "name": "fibridge-host",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "",
   "main": "./src/index.js",
   "scripts": {
@@ -14,7 +14,8 @@
     "webpack-dev-server": "^3.1.7"
   },
   "dependencies": {
-    "omnistreams-concurrent": "^0.4.0",
-    "omnistreams-filereader": "^0.3.0"
+    "omnistreams": "^0.6.0",
+    "omnistreams-filereader": "^0.4.0",
+    "omni-rpc": "^0.2.0"
   }
 }

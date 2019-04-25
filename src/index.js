@@ -5,10 +5,15 @@ import { FileReadProducer } from 'omnistreams-filereader';
 
 class Hoster {
 
-  constructor({ proxyAddress, port, secure }, readyCallback) {
+  constructor({ proxyAddress, port, secure, chunkSize, openRangedChunkSize }, readyCallback) {
 
     this._readyCallback = readyCallback;
     this._files = {};
+
+    // Open ranged requests are sometimes terminated early, after the receiver
+    // gets what they're looking for, so chunkSize is smaller by default.
+    this._chunkSize = chunkSize ? chunkSize : 256*1024; //*1024;
+    this._openRangedChunkSize = openRangedChunkSize ? openRangedChunkSize : 64*1024;
 
     if (this.isDefaultPort(port)) {
       this._portStr = "";
@@ -55,13 +60,18 @@ class Hoster {
 
             //console.log(`read file: ${message.url}`);
 
+            let chunkSize = this._chunkSize;
+
             if (message.range) {
+
               //console.log(message.range, file.size);
               if (message.range.end !== undefined) {
                 file = file.slice(message.range.start, message.range.end);
               }
               else {
                 file = file.slice(message.range.start);
+                
+                chunkSize = this._openRangedChunkSize;
               }
             }
 
@@ -72,7 +82,7 @@ class Hoster {
               range: message.range,
             };
 
-            const fileStream = new FileReadProducer(file)
+            const fileStream = new FileReadProducer(file, { chunkSize })
             fileStream.id = streamSettings.id
             const sendStream = this._mux.createConduit(encodeObject(streamSettings));
 

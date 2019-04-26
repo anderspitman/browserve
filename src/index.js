@@ -3,6 +3,8 @@ import { initiateWebSocketPeer } from 'omni-rpc';
 import { FileReadProducer } from 'omnistreams-filereader';
 
 
+const JSON_RPC_SERVER_ERROR_NOT_FOUND = -32000;
+
 class Hoster {
 
   constructor({ proxyAddress, port, secure, chunkSize, openRangedChunkSize }, readyCallback) {
@@ -43,67 +45,68 @@ class Hoster {
 
   onMessage(message) {
 
-    switch(message.type) {
-      case 'complete-handshake':
-        this._id = message.id;
+    const rpc = message;
+    switch (rpc.method) {
+      case 'setId':
+        this._id = rpc.params;
         this._readyCallback(this);
-         
         break;
-      case 'GET':
-        //console.log(message)
-        if (message.type === 'GET') {
-          if (this._files[message.url] !== undefined) {
+      case 'getFile':
+        if (this._files[rpc.params.path] !== undefined) {
 
-            const fullFile = this._files[message.url];
+          const fullFile = this._files[rpc.params.path];
 
-            let file = fullFile;
+          let file = fullFile;
 
-            //console.log(`read file: ${message.url}`);
+          //console.log(`read file: ${message.url}`);
 
-            let chunkSize = this._chunkSize;
+          let chunkSize = this._chunkSize;
 
-            if (message.range) {
+          if (rpc.params.range) {
 
-              //console.log(message.range, file.size);
-              if (message.range.end !== undefined) {
-                file = file.slice(message.range.start, message.range.end);
-              }
-              else {
-                file = file.slice(message.range.start);
-                
-                chunkSize = this._openRangedChunkSize;
-              }
+            //console.log(message.range, file.size);
+            if (rpc.params.range.end !== undefined) {
+              file = file.slice(rpc.params.range.start, rpc.params.range.end);
             }
+            else {
+              file = file.slice(rpc.params.range.start);
+              
+              chunkSize = this._openRangedChunkSize;
+            }
+          }
 
-            //const fileStream = fileReaderStream(file);
-            const streamSettings = {
-              id: message.requestId,
+          //const fileStream = fileReaderStream(file);
+          const rpcResponse = {
+            jsonrpc: '2.0',
+            result: {
               size: fullFile.size,
-              range: message.range,
-            };
+              range: rpc.params.range,
+            },
+            id: rpc.id,
+          };
 
-            const fileStream = new FileReadProducer(file, { chunkSize })
-            fileStream.id = streamSettings.id
-            const sendStream = this._mux.createConduit(encodeObject(streamSettings));
+          const fileStream = new FileReadProducer(file, { chunkSize })
+          const sendStream = this._mux.createConduit(encodeObject(rpcResponse));
 
-            fileStream.pipe(sendStream)
+          fileStream.pipe(sendStream)
 
-            fileStream.onTermination(() => {
-            })
-          }
-          else {
-            //console.log(`File ${message.url} not found`);
-            this._mux.sendControlMessage(encodeObject({
-              type: 'error',
-              code: 404,
+          fileStream.onTermination(() => {
+          })
+        }
+        else {
+          //console.log(`File ${message.url} not found`);
+          this._mux.sendControlMessage(encodeObject({
+            jsonrpc: '2.0',
+            error: {
+              code: JSON_RPC_SERVER_ERROR_NOT_FOUND,
               message: "File not found",
-              requestId: message.requestId,
-            }))
-          }
+            },
+            id: rpc.id,
+          }))
         }
         break;
       default:
-        throw "Invalid message type: " + message.type;
+        throw new Error("Invalid method: " + rpc.method);
         break;
     }
   }

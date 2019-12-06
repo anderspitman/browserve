@@ -1,5 +1,4 @@
 import { initiateWebSocketMux, encodeObject, decodeObject } from 'omnistreams';
-import { initiateWebSocketPeer } from 'omni-rpc';
 import { FileReadProducer } from 'omnistreams-filereader';
 
 
@@ -16,6 +15,8 @@ class Hoster {
     // gets what they're looking for, so chunkSize is smaller by default.
     this._chunkSize = chunkSize ? chunkSize : 256*1024; //*1024;
     this._openRangedChunkSize = openRangedChunkSize ? openRangedChunkSize : 64*1024;
+
+    this._wsProtoStr = secure ? 'wss:' : 'ws:';
 
     if (this.isDefaultPort(port)) {
       this._portStr = "";

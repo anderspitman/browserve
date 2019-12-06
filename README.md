@@ -15,15 +15,10 @@ in production.
 
 # Example usage
 
-First install the proxy server:
-```bash
-npm install -g fibridge-proxy
-```
+First install the proxy server. See [here](https://github.com/anderspitman/fibridge-proxy-rs).
 
-And run it:
-```bash
-fibridge-proxy -p 8080
-```
+A simple example is below. For a more complete implementation, see the source for
+[fibridge-gui-js](https://github.com/anderspitman/fibridge-gui-js).
 
 Create a Hoster object in the browser and host a couple files.  See
 `dist/index.html` for a working example where the user selects a file from
